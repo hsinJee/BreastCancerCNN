@@ -1,12 +1,11 @@
 import os
-os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 import tensorflow as tf
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.layers import Dense, Flatten, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.vgg16 import VGG16
 from sklearn.utils.class_weight import compute_class_weight
-from sklearn.metrics import accuracy_score, log_loss
+from sklearn.metrics import accuracy_score
 from glob import glob
 import numpy as np
 import sys
@@ -14,23 +13,22 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loading import load_breakHis
 from plotting import plot_accuracy_curve, plot_learning_curve
 
-IMAGE_SIZE=[224, 224]
+IMAGE_SIZE = [224, 224]
 
 train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\train"
 val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"
 test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
 
-base_model = ResNet50(input_shape=IMAGE_SIZE + [3], weights="imagenet", include_top=False)
+# Load base VGG16
+base_model = VGG16(input_shape=IMAGE_SIZE + [3], weights='imagenet', include_top=False)
+
+# Freeze all VGG layers
+for layer in base_model.layers:
+    layer.trainable = False
+
 print(base_model.summary())
 
-for layer in base_model.layers[:-20]:
-    layer.trainable = False # Freeze all layers
-for layer in base_model.layers[-20:]:
-    layer.trainable = True # Unfreeze some layers
-
 classes = glob(os.path.join(train_dir, "*"))
-
-print(classes) # print number of classes
 class_num = len(classes)
 
 # Build the model
