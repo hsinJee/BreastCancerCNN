@@ -6,20 +6,21 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.layers import BatchNormalization 
 from sklearn.utils.class_weight import compute_class_weight
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from glob import glob
 import numpy as np
 import sys
-
+import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loading import load_breakHis
 from plotting import plot_accuracy_curve, plot_learning_curve
 
+# using gpu for training
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.set_logical_device_configuration(
     physical_devices[0],
-    [tf.config.LogicalDeviceConfiguration(memory_limit=4096)]  # Set memory limit to 4GB
+    [tf.config.LogicalDeviceConfiguration(memory_limit=4096)]  # set memory limit to 4GB
 )
 
 IMAGE_SIZE = [224, 224]
@@ -28,10 +29,10 @@ train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X
 val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"
 test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
 
-# Load base VGG16
+# load base VGG16
 base_model = VGG16(input_shape=IMAGE_SIZE + [3], weights='imagenet', include_top=False)
 
-# Freeze all VGG layers
+# freeze all VGG layers
 for layer in base_model.layers[:-4]: # freezing the convolutional layers
     layer.trainable = False
 
@@ -40,13 +41,16 @@ print(base_model.summary())
 classes = glob(os.path.join(train_dir, "*"))
 class_num = len(classes)
 
+print(f"Numer of classes: {class_num}")
+
 # Build the model
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dropout(0.5)(x)
 x = Flatten()(x)
 x = BatchNormalization()(x)
-predictions = Dense(class_num, activation='softmax')(x)
+predictions = Dense(class_num, activation='sigmoid')(x) # change to sigmoid activation for binary class "malgnant or benign"
+# predictions = Dense(class_num, activation='softmax')(x)
 
 model = Model(inputs=base_model.input, outputs=predictions)
 
@@ -68,8 +72,8 @@ from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-VGG16.keras"
 callbacks = [
     ModelCheckpoint(best_model_file, verbose=1, save_best_only=True, monitor='val_accuracy'),
-    ReduceLROnPlateau(monitor='val_accuracy', patience=10, verbose=1, factor=0.5, min_lr=1e-5),
-    EarlyStopping(monitor='val_accuracy', patience=30, verbose=1, mode='max')
+    ReduceLROnPlateau(monitor='val_accuracy', patience=5, verbose=1, factor=0.5, min_lr=1e-5),
+    EarlyStopping(monitor='val_accuracy', patience=10, verbose=1, mode='max')
 ]
 
 EPOCHS = 200
@@ -83,6 +87,20 @@ history = model.fit(
     validation_steps=len(val_set),
     class_weight=class_weights_dict
 )
+
+y_true = val_set.classes  # True labels from the validation set
+# Predict probabilities (output between 0 and 1)
+y_pred_probs = model.predict(val_set)
+y_pred = (y_pred_probs >= 0.5).astype(int)  # Threshold of 0.5 for binary classification
+# Calculate F1 score
+f1 = f1_score(y_true, y_pred, average='binary') 
+
+# save data into a csv file
+history_df = pd.DataFrame(history.history)
+csv_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\history_data_vgg.csv"
+history_df.to_csv(csv_file, index=False)
+
+print(f"History data saved to {csv_file}")
 
 # Plot accuracy curve and loss curves
 plot_accuracy_curve(history.history['accuracy'], history.history['val_accuracy'])
