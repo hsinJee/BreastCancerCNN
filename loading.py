@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 def load_mnist():
     (X_train, train_labels), (X_test, test_labels) = tf.keras.datasets.mnist.load_data()
 
@@ -21,6 +22,41 @@ def load_mnist():
         'test_images': test_images,
         'test_labels': test_labels
     }
+
+def load_breakHis(train_dir, val_dir, image_size=(224, 244), batch_size=64):
+    # augment the image for training
+    train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True
+    )
+
+    # augment the image for validation
+    val_datagen = ImageDataGenerator(
+        rescale=1./255,
+        horizontal_flip=True
+    )
+
+    training_set = train_datagen.flow_from_directory(
+        train_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        class_mode='categorical'
+    )
+
+    val_set = val_datagen.flow_from_directory(
+        val_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        shuffle=False
+    )
+
+    return training_set, val_set
 
 def minmax_normalize(x):
     min_val = np.min(x)
