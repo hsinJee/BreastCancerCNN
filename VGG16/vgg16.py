@@ -4,14 +4,23 @@ from tensorflow.keras.regularizers import l2
 from tensorflow.keras.layers import Dense, Flatten, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications.vgg16 import VGG16
+from tensorflow.keras.layers import BatchNormalization 
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import accuracy_score
 from glob import glob
 import numpy as np
 import sys
+
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loading import load_breakHis
 from plotting import plot_accuracy_curve, plot_learning_curve
+
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.set_logical_device_configuration(
+    physical_devices[0],
+    [tf.config.LogicalDeviceConfiguration(memory_limit=4096)]  # Set memory limit to 4GB
+)
 
 IMAGE_SIZE = [224, 224]
 
@@ -23,7 +32,7 @@ test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\
 base_model = VGG16(input_shape=IMAGE_SIZE + [3], weights='imagenet', include_top=False)
 
 # Freeze all VGG layers
-for layer in base_model.layers:
+for layer in base_model.layers[:-4]: # freezing the convolutional layers
     layer.trainable = False
 
 print(base_model.summary())
@@ -36,13 +45,14 @@ x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dropout(0.5)(x)
 x = Flatten()(x)
+x = BatchNormalization()(x)
 predictions = Dense(class_num, activation='softmax')(x)
 
 model = Model(inputs=base_model.input, outputs=predictions)
 
 print(model.summary())
 
-model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), metrics=['accuracy'])
 
 # loading the files and data augmentation
 training_set, val_set = load_breakHis(train_dir, val_dir)

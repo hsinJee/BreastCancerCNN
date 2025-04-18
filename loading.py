@@ -23,7 +23,7 @@ def load_mnist():
         'test_labels': test_labels
     }
 
-def load_breakHis(train_dir, val_dir, image_size=(224, 244), batch_size=64):
+def load_breakHis(train_dir, val_dir, image_size=(224, 224), batch_size=64):
     # augment the image for training
     train_datagen = ImageDataGenerator(
         rescale=1./255,
@@ -34,12 +34,12 @@ def load_breakHis(train_dir, val_dir, image_size=(224, 244), batch_size=64):
         zoom_range=0.2,
         horizontal_flip=True,
         vertical_flip=True
+        fill_mode='nearest'
     )
 
     # augment the image for validation
     val_datagen = ImageDataGenerator(
-        rescale=1./255,
-        horizontal_flip=True
+        rescale=1./255
     )
 
     training_set = train_datagen.flow_from_directory(
