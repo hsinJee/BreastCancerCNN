@@ -64,7 +64,7 @@ print("Class weights: ", class_weights_dict)
 
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 
-best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet.keras"
+best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet50.keras"
 callbacks = [
     ModelCheckpoint(best_model_file, verbose=1, save_best_only=True, monitor='val_accuracy'),
     ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1, factor=0.5, min_lr=1e-6),
