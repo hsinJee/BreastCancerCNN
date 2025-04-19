@@ -13,7 +13,7 @@ import sys
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from loading import load_breakHis
+from loading import load_breakHis_vgg
 from plotting import plot_accuracy_curve, plot_learning_curve
 
 # using gpu for training

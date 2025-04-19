@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.applications.vgg16 import preprocess_input
 def load_mnist():
     (X_train, train_labels), (X_test, test_labels) = tf.keras.datasets.mnist.load_data()
 
@@ -23,10 +25,10 @@ def load_mnist():
         'test_labels': test_labels
     }
 
-def load_breakHis(train_dir, val_dir, image_size=(224, 224), batch_size=64):
+def load_breakHis_vgg(train_dir, val_dir, image_size=(224, 224), batch_size=64):
     # augment the image for training
     train_datagen = ImageDataGenerator(
-        rescale=1./255,
+        preprocessing_function=preprocess_input,
         rotation_range=40,
         width_shift_range=0.2,
         height_shift_range=0.2,
@@ -39,7 +41,7 @@ def load_breakHis(train_dir, val_dir, image_size=(224, 224), batch_size=64):
 
     # augment the image for validation
     val_datagen = ImageDataGenerator(
-        rescale=1./255
+        preprocessing_function=preprocess_input  
     )
 
     training_set = train_datagen.flow_from_directory(
@@ -56,6 +58,38 @@ def load_breakHis(train_dir, val_dir, image_size=(224, 224), batch_size=64):
         shuffle=False
     )
 
+    return training_set, val_set
+
+def load_breakHis_resNet(train_dir, val_dir, image_size=(224, 224), batch_size=64):
+    train_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True
+    )
+
+    val_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input
+    )
+
+    training_set = train_datagen.flow_from_directory(
+        train_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        class_mode='categorical'
+    )
+
+    val_set = val_datagen.flow_from_directory(
+        val_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        shuffle=False,
+        class_mode='categorical'
+    )
     return training_set, val_set
 
 def minmax_normalize(x):
