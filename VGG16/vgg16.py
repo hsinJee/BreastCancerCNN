@@ -49,8 +49,7 @@ x = GlobalAveragePooling2D()(x)
 x = Dropout(0.5)(x)
 x = Flatten()(x)
 x = BatchNormalization()(x)
-predictions = Dense(class_num, activation='sigmoid')(x) # change to sigmoid activation for binary class "malgnant or benign"
-# predictions = Dense(class_num, activation='softmax')(x)
+predictions = Dense(class_num, activation='softmax')(x)
 
 model = Model(inputs=base_model.input, outputs=predictions)
 
@@ -88,13 +87,6 @@ history = model.fit(
     class_weight=class_weights_dict
 )
 
-y_true = val_set.classes  # True labels from the validation set
-# Predict probabilities (output between 0 and 1)
-y_pred_probs = model.predict(val_set)
-y_pred = (y_pred_probs >= 0.5).astype(int)  # Threshold of 0.5 for binary classification
-# Calculate F1 score
-f1 = f1_score(y_true, y_pred, average='binary') 
-
 # save data into a csv file
 history_df = pd.DataFrame(history.history)
 csv_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\history_data_vgg.csv"
@@ -105,3 +97,9 @@ print(f"History data saved to {csv_file}")
 # Plot accuracy curve and loss curves
 plot_accuracy_curve(history.history['accuracy'], history.history['val_accuracy'])
 plot_learning_curve(history.history['loss'])
+
+y_true = val_set.classes  # True class indices (e.g., 0 or 1)
+y_pred_probs = model.predict(val_set)
+y_pred = np.argmax(y_pred_probs, axis=1)  # Pick the class with highest probability
+f1 = f1_score(y_true, y_pred, average='binary')
+
