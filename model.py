@@ -4,6 +4,15 @@ from plotting import plot_accuracy_curve, plot_histogram, plot_learning_curve, p
 import numpy as np
 import time
 
+# def cross_entropy(x):
+#     return -np.log(x)
+
+# def regularized_cross_entropy(layers, lam, x):
+#     loss = cross_entropy(x)
+#     for layer in layers:
+#         loss += lam * (np.linalg.norm(layer.get_weights()) ** 2)
+#     return loss
+
 def cross_entropy(predictions, targets, epsilon=1e-12):
     predictions = np.clip(predictions, epsilon, 1. - epsilon)
     batch_size = predictions.shape[0]
