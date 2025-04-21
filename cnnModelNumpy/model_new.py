@@ -199,3 +199,18 @@ class CNN:
         with open(filename, 'rb') as f:
             params = pickle.load(f)
             self.set_parameters(params)
+
+    def predict(self, image):
+        # Ensure image is 4D: (1, 28, 28, 1)
+        if image.ndim == 2:
+            image = image.reshape(1, 28, 28, 1)
+        elif image.ndim == 3:
+            image = image.reshape(1, *image.shape)
+        elif image.ndim != 4:
+            raise ValueError(f"Unsupported image shape: {image.shape}")
+        
+        print("Image shape:", image.shape)
+        probs = self.forward(image)
+        prediction = np.argmax(probs, axis=1)[0]
+        print(f"Predicted digit: {prediction}")
+        return prediction
