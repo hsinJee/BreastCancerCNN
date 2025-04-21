@@ -37,3 +37,15 @@ class Dense:
     
     def get_weights(self):
         return np.reshape(self.weights, -1)
+    
+    # add property to save into best model file
+    @property
+    def params(self):
+        return {
+            'weights': self.weights,
+            'biases': self.biases
+        }
+    
+    def params(self, new_params):
+        self.weights = new_params['weights']
+        self.biases = new_params['biases']

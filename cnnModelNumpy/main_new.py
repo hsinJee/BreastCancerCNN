@@ -41,3 +41,12 @@ if __name__ == '__main__':
         learning_rate=learning_rate,
         regularization=regularization
     )
+
+    print('\n--- Evaluating the model ---')
+    model.evaluate(
+        X = dataset['validation_images'],
+        y = dataset['validation_labels'],
+        batch_size=batch_size,
+        regularization=regularization,
+        verbose=verbose
+    )

@@ -63,3 +63,10 @@ class Convolutional:
     
     def get_weights(self):
         return np.reshape(self.filters, -1)
+    
+    @property
+    def params(self):
+        return {'filters': self.filters}
+    
+    def params(self, new_params):
+        self.filters = new_params['filters']
