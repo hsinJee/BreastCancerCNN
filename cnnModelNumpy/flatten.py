@@ -5,3 +5,6 @@ class Flatten:
     
     def backward(self, dout, learning_rate):
         return dout.reshape(self.input_shape)
+    
+    def get_weights(self):
+        return 0

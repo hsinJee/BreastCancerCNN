@@ -1,5 +1,5 @@
 import numpy as np
-from activation import leakyReLU, leakyReLU_derivative, sigmoid, sigmoid_derivative
+# from activation import leakyReLU, leakyReLU_derivative, sigmoid, sigmoid_derivative
 
 class Convolutional:
 
@@ -9,7 +9,7 @@ class Convolutional:
         self.stride = stride
         self.size = size
         self.activation = activation
-        self.filters = np.random.randn(num_filters, self.size, self.size, self.image_shape[2]) # initialize the filter
+        self.filters = np.random.randn(num_filters, size, size, image_shape[2]) * np.sqrt(2. / (size * size * image_shape[2]))  # He initialization
 
     def forward(self, image):
         batch_size, in_h, in_w, channels = image.shape
@@ -60,3 +60,6 @@ class Convolutional:
 
         self.filters -= learning_rate * dfilt
         return dout
+    
+    def get_weights(self):
+        return np.reshape(self.filters, -1)

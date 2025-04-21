@@ -33,4 +33,7 @@ class Dense:
 
         dout = np.dot(din, self.weights.T)
 
-        return dout
+        return dout.reshape(self.last_input.shape)
+    
+    def get_weights(self):
+        return np.reshape(self.weights, -1)
