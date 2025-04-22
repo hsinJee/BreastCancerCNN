@@ -42,3 +42,6 @@ class Dense:
 
     def get_weights(self):
         return np.reshape(self.weights, -1)
+    
+    
+    
