@@ -10,7 +10,7 @@ from loading import load_mnist_new, preprocess
 if __name__ == '__main__':
 
     dataset_name = 'mnist'
-    epochs = 1
+    epochs = 5
     learning_rate = 0.01
     validate = 1
     regularization = 0

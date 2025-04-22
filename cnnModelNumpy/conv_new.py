@@ -68,5 +68,6 @@ class Convolutional:
     def params(self):
         return {'filters': self.filters}
     
+    @params.setter
     def params(self, new_params):
         self.filters = new_params['filters']

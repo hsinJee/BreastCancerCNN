@@ -9,8 +9,7 @@ class Dense:
         self.weights = np.random.uniform(-limit, limit, (input_size, output_size))
         self.biases = np.zeros(output_size)
         self.last_input = None
-        self.last_logits = None  # z before softmax
-
+    
     def softmax(self, x):
         exp = np.exp(x - np.max(x, axis=1, keepdims=True))
         return exp / np.sum(exp, axis=1, keepdims=True)
@@ -33,7 +32,7 @@ class Dense:
 
         dout = np.dot(din, self.weights.T)
 
-        return dout.reshape(self.last_input.shape)
+        return dout
     
     def get_weights(self):
         return np.reshape(self.weights, -1)
@@ -46,6 +45,7 @@ class Dense:
             'biases': self.biases
         }
     
+    @params.setter
     def params(self, new_params):
         self.weights = new_params['weights']
         self.biases = new_params['biases']

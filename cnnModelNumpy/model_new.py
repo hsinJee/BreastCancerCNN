@@ -83,8 +83,8 @@ class CNN:
 
             initial_time = time.time()
 
-            # for evaluation, only evaluate the last 70% of batches
-            threshold_batch = int(num_batches * 0.7)
+            # for evaluation, only evaluate the last 80% of batches
+            threshold_batch = int(num_batches * 0.8)
 
             for i in range(0, n_train, batch_size): 
                 batch_num = i // batch_size + 1
@@ -132,7 +132,9 @@ class CNN:
             
 
             # evaluate after epoch 
-            best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
+            if validate:
+                best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
+
             # average loss for this batch
             epoch_loss /= num_batches
             accuracy = epoch_correct / n_train
@@ -140,10 +142,16 @@ class CNN:
 
     def call_evaluate(self, dataset, history, batch_size, best_val_accuracy, regularization, verbose):
         # evaluate after epoch 
-        indices = np.random.permutation(dataset['validation_images'].shape[0])
+        X_val = dataset['validation_images']
+        y_val = dataset['validation_labels']
+       
+        indices = np.random.permutation(len(X_val))
+
+        X_val = X_val[indices]
+        y_val = y_val[indices]
         val_loss, val_accuracy = self.evaluate(
-            dataset['validation_images'][indices, :],
-            dataset['validation_labels'][indices],
+            X_val,
+            y_val,
             batch_size,
             regularization,
             verbose
@@ -213,4 +221,4 @@ class CNN:
         probs = self.forward(image)
         prediction = np.argmax(probs, axis=1)[0]
         print(f"Predicted digit: {prediction}")
-        return prediction
+        return probs
