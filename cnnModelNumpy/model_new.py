@@ -56,7 +56,7 @@ class CNN:
                         output_size=10, 
                         useSoftmax=True)) # use softmax as it is the final layer    
                 
-        elif dataset_name == 'pooling':
+        elif dataset_name == 'BreakHis':
             self.add_layer(Convolutional(name='conv1', 
                                     image_shape=(28, 28, 1),
                                     num_filters=8,
