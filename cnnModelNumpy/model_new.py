@@ -66,7 +66,7 @@ class CNN:
         history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': [], 'lr': []}
         X_train = dataset['train_images']
         y_train = dataset['train_labels']
-
+        
         n_train = len(X_train)
         
         best_accuracy = 0
@@ -123,12 +123,12 @@ class CNN:
                     # restart time
                     initial_time = time.time()
 
-                if batch_accuracy > best_accuracy:
-                    print(f"Batch {batch_num}/{num_batches}, Loss: {loss:.4f}, Accuracy increase {best_accuracy} > {batch_accuracy}")
-                    best_accuracy = batch_accuracy
+                # if batch_accuracy > best_accuracy:
+                #     print(f"Batch {batch_num}/{num_batches}, Loss: {loss:.4f}, Accuracy increase {best_accuracy} > {batch_accuracy}")
+                #     best_accuracy = batch_accuracy
 
-                    if validate and batch_num >= threshold_batch: # only start evaluating after threshold
-                        best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
+                #     if validate and batch_num >= threshold_batch: # only start evaluating after threshold
+                #         best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
             
 
             # evaluate after epoch 

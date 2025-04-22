@@ -28,16 +28,23 @@ dataset = preprocess(dataset)
 print('\n--- Building the model ---')                                   # build model
 model = CNN()
 model.build_model(dataset_name, batch_size)
-model.load_model("best_model.pkl")
+model.load_model("best_model1.pkl")
 
-# predict the number 6
-target_digit = 6 
-indices = np.where(dataset['train_labels'] == target_digit)[0]
+test_images = dataset['test_images']
+test_labels = dataset['test_labels']
+
+print("hello")
+plt.imshow(test_images[0].reshape(28, 28), cmap='gray')
+plt.title(f"Label: {test_labels[0]}")
+
+# predict the number 9
+target_digit = 9
+indices = np.where(dataset['test_labels'] == target_digit)[0]
 if len(indices) == 0:
     print(f"No images of digit {target_digit} found.")
 else:
-    first_index = indices[0]
-    image = dataset['train_images'][first_index]
+    first_index = indices[1]
+    image = dataset['test_images'][first_index]
 
     # If your image is flattened (784), reshape it for viewing
     if image.ndim == 1:
@@ -49,5 +56,9 @@ else:
     plt.axis('off')
     plt.show()
 
-    model.predict(image)
+    probs = model.predict(image)
+
+    print("\nClass probabilities:")
+    for i, p in enumerate(probs[0]):
+        print(f"Digit {i}: {p:.4f}")
 
