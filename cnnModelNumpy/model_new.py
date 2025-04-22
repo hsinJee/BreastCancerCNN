@@ -128,11 +128,11 @@ class CNN:
                     best_accuracy = batch_accuracy
 
                     if validate and batch_num >= threshold_batch: # only start evaluating after threshold
-                        best_val_accuracy = self.call_evaluate(self, dataset, history, batch_size, best_val_accuracy, regularization, verbose)
+                        best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
             
 
             # evaluate after epoch 
-            best_val_accuracy = self.call_evaluate(self, dataset, history, batch_size, best_val_accuracy, regularization, verbose)
+            best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
             # average loss for this batch
             epoch_loss /= num_batches
             accuracy = epoch_correct / n_train
