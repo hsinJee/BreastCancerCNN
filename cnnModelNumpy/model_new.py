@@ -1,6 +1,7 @@
 from conv_new import Convolutional
 from dense_new import Dense
 from flatten import Flatten
+from batch_norm import BatchNormalization
 import numpy as np
 import time
 import pickle
@@ -8,6 +9,7 @@ import pickle
 class CNN:
     def __init__(self): 
         self.layers = []
+        self.training = True
     
     def add_layer(self, layer):
         self.layers.append(layer)
@@ -31,10 +33,31 @@ class CNN:
                         input_size=8*6*6,
                         output_size=10, 
                         useSoftmax=True)) # use softmax as it is the final layer
+        elif dataset_name == 'mnists':
+            self.add_layer(Convolutional(name='conv1', 
+                                    image_shape=(28, 28, 1),
+                                    num_filters=8,
+                                    stride=2,
+                                    size=3,  
+                                    activation='relu'))
+            self.add_layer(BatchNormalization(name='batch_norm1'))
+            self.add_layer(Convolutional(name='conv2',
+                                        image_shape=(13, 13, 8),  # Output shape from conv1
+                                        num_filters=8,
+                                        stride=2,
+                                        size=3,
+                                        activation='relu'))
+            self.add_layer(BatchNormalization(name='batch_norm2'))
+            self.add_layer(Flatten()) # add flatten layer before dense
+            self.add_layer(Dense(name='dense1', 
+                        input_size=8*6*6,
+                        output_size=10, 
+                        useSoftmax=True)) # use softmax as it is the final layer
             
-    def forward(self, image):
+    def forward(self, image, training):
+        # training bool false or true
         for layer in self.layers:
-            image = layer.forward(image)
+            image = layer.forward(image, training)
         return image
     
     def backward(self, dout, learning_rate):
@@ -74,6 +97,7 @@ class CNN:
         best_val_accuracy = -np.inf # start with very low value
 
         for epoch in range(num_epochs):
+            self.training = True
             epoch_loss, epoch_correct = 0, 0
             num_batches = (n_train + batch_size - 1) // batch_size
 
@@ -94,7 +118,7 @@ class CNN:
                 y_batch = y_train[i:i + batch_size]
                 
                 # pass batch through forward pass
-                y_pred = self.forward(X_batch)
+                y_pred = self.forward(X_batch, training=True)
 
                 # number of correct preds
                 batch_preds = np.argmax(y_pred, axis=1)
@@ -128,12 +152,13 @@ class CNN:
                 #     print(f"Batch {batch_num}/{num_batches}, Loss: {loss:.4f}, Accuracy increase {best_accuracy} > {batch_accuracy}")
                 #     best_accuracy = batch_accuracy
 
-                #     if validate and batch_num >= threshold_batch: # only start evaluating after threshold
+                #     if validate: # only start evaluating after threshold
                 #         best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
             
 
             # evaluate after epoch 
             if validate:
+                self.training = False
                 best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
 
             # average loss for this batch
@@ -177,7 +202,7 @@ class CNN:
             X_batch = X[i:i + batch_size]
             y_batch = y[i:i + batch_size]
 
-            y_pred  = self.forward(X_batch)
+            y_pred  = self.forward(X_batch, training=False)
 
             loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch))
             total_loss += loss
@@ -219,7 +244,7 @@ class CNN:
             raise ValueError(f"Unsupported image shape: {image.shape}")
         
         print("Image shape:", image.shape)
-        probs = self.forward(image)
+        probs = self.forward(image, training=False)
         prediction = np.argmax(probs, axis=1)[0]
         print(f"Predicted digit: {prediction}")
         return probs

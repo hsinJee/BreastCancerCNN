@@ -11,7 +11,7 @@ class Convolutional:
         self.activation = activation
         self.filters = np.random.randn(num_filters, size, size, image_shape[2]) * np.sqrt(2. / (size * size * image_shape[2]))  # He initialization
 
-    def forward(self, image):
+    def forward(self, image, training):
         batch_size, in_h, in_w, channels = image.shape
         num_f, f_size, _, _ = self.filters.shape
         

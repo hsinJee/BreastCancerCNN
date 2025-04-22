@@ -1,5 +1,5 @@
 class Flatten:
-    def forward(self, x):
+    def forward(self, x, training):
         self.input_shape = x.shape
         return x.reshape(x.shape[0], -1)
     

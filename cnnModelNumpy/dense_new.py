@@ -15,7 +15,7 @@ class Dense:
         exp = np.exp(x - np.max(x, axis=1, keepdims=True))
         return exp / np.sum(exp, axis=1, keepdims=True)
     
-    def forward(self, input):
+    def forward(self, input, training):
         self.last_input = input
 
         output = np.dot(input, self.weights) + self.biases
