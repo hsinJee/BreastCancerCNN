@@ -9,7 +9,7 @@ from loading import load_mnist_new, preprocess
 # exploding gradient for now
 if __name__ == '__main__':
 
-    dataset_name = 'mnists'
+    dataset_name = 'other'
     epochs = 5
     learning_rate = 0.01
     validate = 1

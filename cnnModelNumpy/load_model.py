@@ -8,7 +8,7 @@ sys.path.insert(0, parent_dir)
 
 from loading import load_mnist_new, preprocess
 
-dataset_name = 'mnists'
+dataset_name = 'other'
 epochs = 1
 learning_rate = 0.01
 validate = 1

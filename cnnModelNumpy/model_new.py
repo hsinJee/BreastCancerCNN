@@ -2,6 +2,7 @@ from conv_new import Convolutional
 from dense_new import Dense
 from flatten import Flatten
 from batch_norm import BatchNormalization
+from pooling import Pooling
 import numpy as np
 import time
 import pickle
@@ -33,7 +34,8 @@ class CNN:
                         input_size=8*6*6,
                         output_size=10, 
                         useSoftmax=True)) # use softmax as it is the final layer
-        elif dataset_name == 'mnists':
+            
+        elif dataset_name == 'other':
             self.add_layer(Convolutional(name='conv1', 
                                     image_shape=(28, 28, 1),
                                     num_filters=8,
@@ -52,6 +54,29 @@ class CNN:
             self.add_layer(Dense(name='dense1', 
                         input_size=8*6*6,
                         output_size=10, 
+                        useSoftmax=True)) # use softmax as it is the final layer    
+                
+        elif dataset_name == 'pooling':
+            self.add_layer(Convolutional(name='conv1', 
+                                    image_shape=(28, 28, 1),
+                                    num_filters=8,
+                                    stride=2,
+                                    size=3,  
+                                    activation='relu'))
+            self.add_layer(BatchNormalization(name='batch_norm1'))
+            self.add_layer(Pooling(name='pool1', stride=2, size=2))
+            self.add_layer(Convolutional(name='conv2',
+                                        image_shape=(6, 6, 8),  # Output shape from conv1
+                                        num_filters=8,
+                                        stride=2,
+                                        size=3,
+                                        activation='relu'))
+            self.add_layer(BatchNormalization(name='batch_norm2'))
+            self.add_layer(Pooling(name='pool2', stride=2, size=2))
+            self.add_layer(Flatten()) # add flatten layer before dense
+            self.add_layer(Dense(name='dense1', 
+                        input_size=8*1*1,
+                        output_size=10, # numebr of classes
                         useSoftmax=True)) # use softmax as it is the final layer
             
     def forward(self, image, training):
