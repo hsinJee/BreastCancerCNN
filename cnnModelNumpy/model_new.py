@@ -29,7 +29,8 @@ class CNN:
             self.add_layer(Flatten()) # add flatten layer before dense
             self.add_layer(Dense(name='dense1', 
                         input_size=8*6*6,
-                        output_size=10)) # 10 class for MNIST
+                        output_size=10, 
+                        useSoftmax=True)) # use softmax as it is the final layer
             
     def forward(self, image):
         for layer in self.layers:

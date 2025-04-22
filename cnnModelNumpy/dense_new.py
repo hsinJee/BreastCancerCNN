@@ -1,7 +1,7 @@
 import numpy as np
 
 class Dense:
-    def __init__(self, name, input_size, output_size):
+    def __init__(self, name, input_size, output_size, useSoftmax=True):
         self.name = name
 
         # Xavier initialization
@@ -9,6 +9,7 @@ class Dense:
         self.weights = np.random.uniform(-limit, limit, (input_size, output_size))
         self.biases = np.zeros(output_size)
         self.last_input = None
+        self.useSoftmax = useSoftmax
     
     def softmax(self, x):
         exp = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -19,7 +20,11 @@ class Dense:
 
         output = np.dot(input, self.weights) + self.biases
         self.last_output = output
-        return self.softmax(output)
+
+        if self.useSoftmax:
+            output = self.softmax(output)
+
+        return output
     
     def backward(self, din, learning_rate):
         batch_size = self.last_input.shape[0]
