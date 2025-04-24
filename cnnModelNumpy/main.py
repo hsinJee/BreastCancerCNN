@@ -1,15 +1,15 @@
-from model_new import CNN
+from model import CNN
 import sys, os
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, parent_dir)
 
-from loading import load_mnist_new, preprocess
+from loading import load_mnist_new, preprocess, load_breakHis_CNN
 
 # exploding gradient for now
 if __name__ == '__main__':
-
-    dataset_name = 'other'
+    # 'breakHis' 'mnist'
+    dataset_name = 'breakHis'
     epochs = 5
     learning_rate = 0.01
     validate = 1
@@ -19,13 +19,16 @@ if __name__ == '__main__':
     batch_size = 32
     patience = 5
     regularization = 0.1
+    train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\train"
+    val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"
+    test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
 
 
     print('\n--- Loading ' + dataset_name + ' dataset ---')  
-    dataset = load_mnist_new()
-
+    dataset = load_breakHis_CNN(train_dir=train_dir, val_dir=val_dir, test_dir=test_dir)
+    # dataset = load_mnist_new()
     print('\n--- Processing the dataset ---')  
-    dataset = preprocess(dataset)
+    # dataset = preprocess(dataset)
 
     print(f'Length of train dataset: {len(dataset["train_images"])}')
 
@@ -39,7 +42,8 @@ if __name__ == '__main__':
         num_epochs=epochs,
         batch_size=batch_size,
         learning_rate=learning_rate,
-        regularization=regularization
+        regularization=regularization,
+        validate=True
     )
 
     print('\n--- Evaluating the model ---')

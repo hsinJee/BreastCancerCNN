@@ -1,7 +1,7 @@
 import numpy as np
 
 class Dense:
-    def __init__(self, name, input_size, output_size, useSoftmax=True):
+    def __init__(self, name, input_size, output_size, useSoftmax):
         self.name = name
 
         # Xavier initialization

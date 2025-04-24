@@ -13,7 +13,7 @@ test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\
 
 CLASSES = os.listdir(train_dir)
 num_classes = len(CLASSES)
-# "C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet50.keras"
+#best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet50.keras"
 best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-VGG16.keras"
 model = tf.keras.models.load_model(best_model_file)
 
@@ -60,7 +60,7 @@ def prepareImage(imagePath):
     imgResult = imgResult / 255.0
     return imgResult
 
-testImagePath = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test\malignant\SOB_M_DC-14-3909-200-016.png"
+testImagePath = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test\benign\SOB_B_F-14-25197-200-040.png"
 
 img = cv2.imread(testImagePath)
 
@@ -72,7 +72,7 @@ print(resultArray)
 answer = np.argmax(resultArray, axis=1)  # retrieve the higher probability item
 print(answer)
 
-heatmap = get_gradcam_heatmap(model, imgForModel, answer[0], layer_name="block5_conv3")
+heatmap = get_gradcam_heatmap(model, imgForModel, answer[0], layer_name="conv5_block3_out")
 
 overlayed_image = apply_gradcam(testImagePath, heatmap)
 
