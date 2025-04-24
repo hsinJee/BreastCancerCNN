@@ -104,7 +104,7 @@ class CNN:
             # Fully Connected Layer 1 (Dense Layer)
             self.add_layer(Dense(name='dense1', 
                                 input_size= 3*3*64,  # Adjusted for the output size after pooling
-                                output_size=128,  # You can adjust the number of units
+                                output_size=128,  
                                 useSoftmax=False))
 
             # Output Layer (Softmax for classification)
