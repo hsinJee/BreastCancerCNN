@@ -127,21 +127,27 @@ class CNN:
             print(f"{layer.name}")     
         return dout
     
-    def cross_entropy(self, predictions, targets, epsilon=1e-12):
+    def cross_entropy(self, predictions, targets, class_weights=None, epsilon=1e-12):
         predictions = np.clip(predictions, epsilon, 1. - epsilon)
         batch_size = predictions.shape[0]
+        
         log_likelihood = -np.log(predictions[np.arange(batch_size), targets])
+
+        if class_weights is not None:
+            weights = class_weights[targets]
+            log_likelihood *= weights
+
         return np.mean(log_likelihood)
 
-    def regularized_cross_entropy(self, layers, predictions, targets, lam, batch_size):
-        data_loss = self.cross_entropy(predictions, targets)
-        
+    def regularized_cross_entropy(self, layers, predictions, targets, lam, batch_size, class_weights=None):
+        data_loss = self.cross_entropy(predictions, targets, class_weights=class_weights)
+
         reg_loss = 0
         for layer in layers:
             weights = layer.get_weights()
-            if isinstance(weights, np.ndarray) and weights.size > 0:  # Skip layers without weights
+            if isinstance(weights, np.ndarray) and weights.size > 0:
                 reg_loss += np.sum(weights**2)
-        
+
         total_loss = data_loss + (lam / (2 * batch_size)) * reg_loss
         return total_loss
     
@@ -152,6 +158,14 @@ class CNN:
         history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': [], 'lr': []}
         X_train = dataset['train_images']
         y_train = dataset['train_labels']
+        num_benign = np.sum(y_train == 0)
+        num_malignant = np.sum(y_train == 1)
+
+        # weighted inputs
+        total = num_benign + num_malignant
+        weight_benign = total / (2 * num_benign)
+        weight_malignant = total / (2 * num_malignant)
+        class_weights = np.array([weight_benign, weight_malignant])
         
         n_train = len(X_train)
         
@@ -203,7 +217,7 @@ class CNN:
 
                 
                 # loss function
-                loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch))
+                loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch), class_weights=class_weights)
                 epoch_loss += loss
                 
                 self.backward(gradient, learning_rate)
