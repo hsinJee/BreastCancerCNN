@@ -5,11 +5,17 @@ class BatchNormalization:
         self.name = name
         self.epsilon = epsilon
         self.momentum = momentum
-        self.gamma = None  # Learnable scale
-        self.beta = None   # Learnable shift
+        self.gamma = None
+        self.beta = None
         self.running_mean = None
         self.running_var = None
-        pass
+
+        # Adam variables
+        self.m_gamma = None
+        self.v_gamma = None
+        self.m_beta = None
+        self.v_beta = None
+        self.t = 0
 
     def build(self, input_shape):
         channels = input_shape[-1]
@@ -17,6 +23,12 @@ class BatchNormalization:
         self.beta = np.zeros((1, 1, 1, channels))
         self.running_mean = np.zeros((1, 1, 1, channels))
         self.running_var = np.ones((1, 1, 1, channels))
+
+        # initialize Adam variables
+        self.m_gamma = np.zeros_like(self.gamma)
+        self.v_gamma = np.zeros_like(self.gamma)
+        self.m_beta = np.zeros_like(self.beta)
+        self.v_beta = np.zeros_like(self.beta)
 
     def forward(self, x, training=True):
         # x is input, x_norm is the normalized input
@@ -40,9 +52,8 @@ class BatchNormalization:
         out = self.gamma * self.x_norm + self.beta
         return out
     
-    def backward(self, dout, learning_rate):
+    def backward(self, dout, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8):
         assert hasattr(self, "x"), "Forward must be called before backward!"
-        # batch size, height, width, channels
         N, H, W, C = dout.shape
         N_total = N * H * W
 
@@ -50,16 +61,29 @@ class BatchNormalization:
         dbeta = np.sum(dout, axis=(0, 1, 2), keepdims=True)
 
         dx_norm = dout * self.gamma
-
         std_inv = 1. / np.sqrt(self.var + self.epsilon)
 
-        dx = (1. /  N_total) * std_inv * ( 
+        dx = (1. /  N_total) * std_inv * (
             N_total * dx_norm - np.sum(dx_norm, axis=(0, 1, 2), keepdims=True)
             - self.x_norm * np.sum(dx_norm * self.x_norm, axis=(0, 1, 2), keepdims=True)
         )
-        
-        self.gamma -= learning_rate * dgamma
-        self.beta -= learning_rate * dbeta
+
+        # Adam update
+        self.t += 1
+
+        # update gamma
+        self.m_gamma = beta1 * self.m_gamma + (1 - beta1) * dgamma
+        self.v_gamma = beta2 * self.v_gamma + (1 - beta2) * (dgamma ** 2)
+        m_gamma_hat = self.m_gamma / (1 - beta1 ** self.t)
+        v_gamma_hat = self.v_gamma / (1 - beta2 ** self.t)
+        self.gamma -= learning_rate * m_gamma_hat / (np.sqrt(v_gamma_hat) + epsilon)
+
+        # update beta
+        self.m_beta = beta1 * self.m_beta + (1 - beta1) * dbeta
+        self.v_beta = beta2 * self.v_beta + (1 - beta2) * (dbeta ** 2)
+        m_beta_hat = self.m_beta / (1 - beta1 ** self.t)
+        v_beta_hat = self.v_beta / (1 - beta2 ** self.t)
+        self.beta -= learning_rate * m_beta_hat / (np.sqrt(v_beta_hat) + epsilon)
 
         return dx
     
