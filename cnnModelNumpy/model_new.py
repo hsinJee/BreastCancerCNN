@@ -89,7 +89,8 @@ class CNN:
     
     def backward(self, dout, learning_rate):
         for layer in reversed(self.layers):
-            dout = layer.backward(dout, learning_rate)     
+            if hasattr(layer, 'backward'):
+                dout = layer.backward(dout, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8)
         return dout
     
     def cross_entropy(self, predictions, targets, epsilon=1e-12):
