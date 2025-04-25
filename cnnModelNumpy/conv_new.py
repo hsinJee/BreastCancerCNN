@@ -5,11 +5,16 @@ class Convolutional:
 
     def __init__(self, name, image_shape, num_filters, stride=1, size=3, activation=None):
         self.name = name
-        self.image_shape = image_shape # (width, height, channels)
+        self.image_shape = image_shape
         self.stride = stride
         self.size = size
         self.activation = activation
-        self.filters = np.random.randn(num_filters, size, size, image_shape[2]) * np.sqrt(2. / (size * size * image_shape[2]))  # He initialization
+        self.filters = np.random.randn(num_filters, size, size, image_shape[2]) * np.sqrt(2. / (size * size * image_shape[2]))
+
+        # Adam variables
+        self.m = np.zeros_like(self.filters)
+        self.v = np.zeros_like(self.filters)
+        self.t = 0
 
     def forward(self, image, training):
         batch_size, in_h, in_w, channels = image.shape
@@ -36,15 +41,15 @@ class Convolutional:
         
         return out
     
-    def backward(self, din, learning_rate):
+    def backward(self, din, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8):
         batch_size, in_h, in_w, channels = self.last_input.shape
         num_f, f_size, _, _ = self.filters.shape
 
         dfilt = np.zeros_like(self.filters)
         dout = np.zeros_like(self.last_input)
-        
-        for b in range((batch_size)):
-            for f in range((num_f)):
+
+        for b in range(batch_size):
+            for f in range(num_f):
                 out_y = 0
                 for y in range(0, in_h - self.size + 1, self.stride):
                     out_x = 0
@@ -58,7 +63,16 @@ class Convolutional:
                         out_x += 1
                     out_y += 1
 
-        self.filters -= learning_rate * dfilt
+        # Adam update
+        self.t += 1
+        self.m = beta1 * self.m + (1 - beta1) * dfilt
+        self.v = beta2 * self.v + (1 - beta2) * (dfilt ** 2)
+
+        m_hat = self.m / (1 - beta1 ** self.t)
+        v_hat = self.v / (1 - beta2 ** self.t)
+
+        self.filters -= learning_rate * m_hat / (np.sqrt(v_hat) + epsilon)
+
         return dout
     
     def get_weights(self):
