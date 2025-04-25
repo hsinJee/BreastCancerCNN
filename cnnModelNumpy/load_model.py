@@ -8,7 +8,7 @@ sys.path.insert(0, parent_dir)
 
 from loading import load_mnist_new, preprocess
 
-dataset_name = 'other'
+dataset_name = 'mnist'
 epochs = 1
 learning_rate = 0.01
 validate = 1
@@ -28,7 +28,7 @@ dataset = preprocess(dataset)
 print('\n--- Building the model ---')                                   # build model
 model = CNN()
 model.build_model(dataset_name, batch_size)
-model.load_model("best_model.pkl")
+model.load_model("best_modelMNIST.pkl")
 
 test_images = dataset['test_images']
 test_labels = dataset['test_labels']
@@ -38,7 +38,7 @@ plt.imshow(test_images[0].reshape(28, 28), cmap='gray')
 plt.title(f"Label: {test_labels[0]}")
 
 # predict the number 9
-target_digit = 9
+target_digit = 2
 indices = np.where(dataset['test_labels'] == target_digit)[0]
 if len(indices) == 0:
     print(f"No images of digit {target_digit} found.")

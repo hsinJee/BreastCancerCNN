@@ -6,6 +6,8 @@ from pooling import Pooling
 import numpy as np
 import time
 import pickle
+import pandas as pd
+import datetime
 
 class CNN:
     def __init__(self): 
@@ -112,7 +114,8 @@ class CNN:
         print(f"Starting training for {num_epochs} epochs with batch size {batch_size}...")    
 
         # do not care about val_loss val_accuracy and lr for now ill implement later
-        history = {'loss': [], 'accuracy': [], 'val_loss': [], 'val_accuracy': [], 'lr': []}
+        history = {'loss': [], 'accuracy': [], 'lr': []}
+        epoch_history = {'val_loss': [], 'val_accuracy': []}
         X_train = dataset['train_images']
         y_train = dataset['train_labels']
         
@@ -164,6 +167,7 @@ class CNN:
                 
                 self.backward(gradient, learning_rate)
 
+                history['lr'].append(learning_rate)
                 history['loss'].append(loss)
                 history['accuracy'].append(batch_accuracy)
                 
@@ -184,12 +188,23 @@ class CNN:
             # evaluate after epoch 
             if validate:
                 self.training = False
-                best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
+                best_val_accuracy = self.call_evaluate(dataset, epoch_history, batch_size, best_val_accuracy, regularization, verbose)
 
             # average loss for this batch
             epoch_loss /= num_batches
             accuracy = epoch_correct / n_train
             print(f"Epoch {epoch+1}/{num_epochs}, Avg Loss: {epoch_loss}, Avg Accuracy: {accuracy}, Best Accuracy: {best_accuracy}")
+
+        # after the for epoch in range(num_epochs): loop ends
+        history_df = pd.DataFrame(history)
+        epoch_df = pd.DataFrame(epoch_history)
+
+        # timestamped filenames
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        history_df.to_csv(f'training_history_{timestamp}.csv', index=False)
+        epoch_df.to_csv(f'epoch_history_{timestamp}.csv', index=False)
+
+        print("Training and epoch history saved.")
 
     def call_evaluate(self, dataset, history, batch_size, best_val_accuracy, regularization, verbose):
         # evaluate after epoch 
