@@ -1,5 +1,8 @@
 import tensorflow as tf
 import numpy as np
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.applications.vgg16 import preprocess_input
 def load_mnist():
     (X_train, train_labels), (X_test, test_labels) = tf.keras.datasets.mnist.load_data()
 
@@ -13,6 +16,147 @@ def load_mnist():
     train_images, validation_images = train_images[training_idx], train_images[validation_idx]
     train_labels, validation_labels = train_labels[training_idx], train_labels[validation_idx]
 
+    return {
+        'train_images': train_images,
+        'train_labels': train_labels,
+        'validation_images': validation_images,
+        'validation_labels': validation_labels,
+        'test_images': test_images,
+        'test_labels': test_labels
+    }
+
+def load_breakHis_vgg(train_dir, val_dir, image_size=(224, 224), batch_size=64):
+    # augment the image for training
+    train_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True,
+        fill_mode='nearest'
+    )
+
+    # augment the image for validation
+    val_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input  
+    )
+
+    training_set = train_datagen.flow_from_directory(
+        train_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        class_mode='categorical'
+    )
+
+    val_set = val_datagen.flow_from_directory(
+        val_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        shuffle=False
+    )
+
+    return training_set, val_set
+
+def load_breakHis_resNet(train_dir, val_dir, image_size=(224, 224), batch_size=64):
+    train_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True
+    )
+
+    val_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input
+    )
+
+    training_set = train_datagen.flow_from_directory(
+        train_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        class_mode='categorical'
+    )
+
+    val_set = val_datagen.flow_from_directory(
+        val_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        shuffle=False,
+        class_mode='categorical'
+    )
+    return training_set, val_set
+
+def load_breakHis_CNN(train_dir, val_dir, test_dir, image_size=(224, 224), batch_size=64):
+    # Image data generator for training with augmentation
+    train_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,  # ResNet-specific preprocessing
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=False
+    )
+
+    # Image data generator for validation (no augmentation)
+    val_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input  # Only preprocessing
+    )
+    
+    # Image data generator for test set (no augmentation)
+    test_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input  # Only preprocessing
+    )
+
+    # Load the training dataset
+    train_set = train_datagen.flow_from_directory(
+        train_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        class_mode='categorical'  # Multi-class classification
+    )
+
+    # Load the validation dataset
+    val_set = val_datagen.flow_from_directory(
+        val_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        shuffle=False,  # Do not shuffle validation set
+        class_mode='categorical'
+    )
+
+    # Load the test dataset
+    test_set = test_datagen.flow_from_directory(
+        test_dir,
+        target_size=image_size,
+        batch_size=batch_size,
+        shuffle=False,  # Do not shuffle test set
+        class_mode='categorical'
+    )
+
+    # Collect all images and labels
+    def collect_data(data_generator):
+        images = []
+        labels = []
+        for _ in range(len(data_generator)):
+            batch_images, batch_labels = data_generator.next()
+            images.append(batch_images)
+            labels.append(batch_labels)
+        return np.concatenate(images), np.concatenate(labels)
+    
+    # Get training, validation, and test data
+    train_images, train_labels = collect_data(train_set)
+    validation_images, validation_labels = collect_data(val_set)
+    test_images, test_labels = collect_data(test_set)
+    
+    # Return the dictionary in the desired format
     return {
         'train_images': train_images,
         'train_labels': train_labels,

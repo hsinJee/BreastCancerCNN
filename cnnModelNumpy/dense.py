@@ -1,7 +1,7 @@
 import numpy as np
 
 class Dense:
-    def __init__(self, name, input_size, output_size, useSoftmax=True):
+    def __init__(self, name, input_size, output_size, useSoftmax):
         self.name = name
         limit = np.sqrt(6 / (input_size + output_size))
         self.weights = np.random.uniform(-limit, limit, (input_size, output_size))

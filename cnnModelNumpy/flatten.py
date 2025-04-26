@@ -1,4 +1,7 @@
 class Flatten:
+    def __init__(self, name):
+        self.name = name
+
     def forward(self, x, training):
         self.input_shape = x.shape
         return x.reshape(x.shape[0], -1)

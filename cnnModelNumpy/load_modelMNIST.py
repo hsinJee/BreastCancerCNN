@@ -1,4 +1,4 @@
-from model_new import CNN
+from model import CNN
 import numpy as np
 import sys, os
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ dataset = preprocess(dataset)
 print('\n--- Building the model ---')                                   # build model
 model = CNN(patience=patience)
 model.build_model(dataset_name, batch_size)
-model.load_model("best_model.pkl")
+model.load_model("best_modelMNIST.pkl")
 
 test_images = dataset['test_images']
 
@@ -44,7 +44,7 @@ indices = np.where(dataset['test_labels'] == target_digit)[0]
 if len(indices) == 0:
     print(f"No images of digit {target_digit} found.")
 else:
-    first_index = indices[0]
+    first_index = indices[1]
     image = dataset['test_images'][first_index]
 
     # If your image is flattened (784), reshape it for viewing
