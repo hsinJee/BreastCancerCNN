@@ -47,7 +47,6 @@ def load_mnist_new():
         'test_labels': y_test
     }
 
-
 def minmax_normalize(x):
     min_val = np.min(x)
     max_val = np.max(x)
