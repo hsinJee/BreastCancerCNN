@@ -30,7 +30,7 @@ if __name__ == '__main__':
     print(f'Length of train dataset: {len(dataset["train_images"])}')
 
     print('\n--- Building the model ---')                                   # build model
-    model = CNN()
+    model = CNN(patience=patience)
     model.build_model(dataset_name, batch_size)
 
     print('\n--- Training the model ---')

@@ -26,11 +26,12 @@ print('\n--- Processing the dataset ---')
 dataset = preprocess(dataset)
 
 print('\n--- Building the model ---')                                   # build model
-model = CNN()
+model = CNN(patience=patience)
 model.build_model(dataset_name, batch_size)
-model.load_model("best_modelMNIST.pkl")
+model.load_model("best_modelMNIST1.pkl")
 
 test_images = dataset['test_images']
+
 test_labels = dataset['test_labels']
 
 print("hello")
@@ -38,7 +39,7 @@ plt.imshow(test_images[0].reshape(28, 28), cmap='gray')
 plt.title(f"Label: {test_labels[0]}")
 
 # predict the number 9
-target_digit = 2
+target_digit = 4
 indices = np.where(dataset['test_labels'] == target_digit)[0]
 if len(indices) == 0:
     print(f"No images of digit {target_digit} found.")

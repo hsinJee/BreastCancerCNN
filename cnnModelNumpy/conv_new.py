@@ -38,12 +38,33 @@ class Convolutional:
                         out[b, out_y, out_x, f] += np.sum(patch * self.filters[f])
                         out_x += 1
                     out_y += 1
-        
+
+        self.last_output = out.copy()
+
+        if self.activation == 'relu':
+            out = np.maximum(0, out)  # ReLU
+        elif self.activation == 'sigmoid':
+            out = 1 / (1 + np.exp(-out))  # Sigmoid
+        elif self.activation == 'tanh':
+            out = np.tanh(out)  # Tanh
+        else:
+            out = out
         return out
     
     def backward(self, din, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8):
         batch_size, in_h, in_w, channels = self.last_input.shape
         num_f, f_size, _, _ = self.filters.shape
+
+        if self.activation == 'relu':
+            dout = din * (self.last_output > 0)
+        elif self.activation == 'sigmoid':
+            sigmoid_out = 1 / (1 + np.exp(-self.last_output))
+            dout = din * sigmoid_out * (1 - sigmoid_out)
+        elif self.activation == 'tanh':
+            tanh_out = np.tanh(self.last_output)
+            dout = din * (1 - tanh_out ** 2)
+        else:
+            dout = din  # No activation
 
         dfilt = np.zeros_like(self.filters)
         dout = np.zeros_like(self.last_input)

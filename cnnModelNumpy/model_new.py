@@ -10,9 +10,10 @@ import pandas as pd
 import datetime
 
 class CNN:
-    def __init__(self): 
+    def __init__(self, patience): 
         self.layers = []
         self.training = True
+        self.patience = patience
     
     def add_layer(self, layer):
         self.layers.append(layer)
@@ -81,6 +82,11 @@ class CNN:
                         output_size=10, # numebr of classes
                         useSoftmax=True)) # use softmax as it is the final layer
             
+    def lr_scheduler(self, initial_lr, step, drop=0.5, epochs_drop=10):
+        new_lr = initial_lr * (drop ** (step // epochs_drop))
+        print(f"Adjusting learning rate: {initial_lr} > {new_lr}")
+        return new_lr
+            
     def forward(self, image, training):
         # training bool false or true
         for layer in self.layers:
@@ -114,21 +120,26 @@ class CNN:
     def train(self, dataset, num_epochs, batch_size, learning_rate, regularization, verbose=True, validate=True):
         print(f"Starting training for {num_epochs} epochs with batch size {batch_size}...")    
 
-        # do not care about val_loss val_accuracy and lr for now ill implement later
-        history = {'loss': [], 'accuracy': [], 'lr': []}
-        epoch_history = {'val_loss': [], 'val_accuracy': []}
+        history = {'loss': [], 'accuracy': [], 'lr': [], 'val_loss': [], 'val_accuracy': []}
+
+        initial_learning_rate = learning_rate
+
         X_train = dataset['train_images']
         y_train = dataset['train_labels']
-        
         n_train = len(X_train)
-        
-        best_accuracy = 0
-        best_val_accuracy = -np.inf # start with very low value
+
+        n_batches = (n_train + batch_size - 1) // batch_size
+        eval_interval = max(1, n_batches // 20) # evaluate 20 times per epoch
+
+        best_val_accuracy = -np.inf
+        interval_loss = 0
+        interval_correct = 0
+        interval_count = 0
+        early_stopping = 0
 
         for epoch in range(num_epochs):
             self.training = True
             epoch_loss, epoch_correct = 0, 0
-            num_batches = (n_train + batch_size - 1) // batch_size
 
             indices = np.arange(n_train)
             np.random.shuffle(indices)
@@ -137,104 +148,103 @@ class CNN:
 
             initial_time = time.time()
 
-            # for evaluation, only evaluate the last 80% of batches
-            threshold_batch = int(num_batches * 0.8)
-
-            for i in range(0, n_train, batch_size): 
+            for i in range(0, n_train, batch_size):
                 batch_num = i // batch_size + 1
 
                 X_batch = X_train[i:i + batch_size]
                 y_batch = y_train[i:i + batch_size]
                 
-                # pass batch through forward pass
                 y_pred = self.forward(X_batch, training=True)
 
-                # number of correct preds
                 batch_preds = np.argmax(y_pred, axis=1)
                 batch_correct = np.sum(batch_preds == y_batch)
 
                 epoch_correct += batch_correct
                 batch_accuracy = batch_correct / batch_size
 
-                # backward pass
                 gradient = y_pred.copy()
                 gradient[np.arange(len(X_batch)), y_batch] -= 1
                 gradient /= len(X_batch)
 
-                
-                # loss function
                 loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch))
                 epoch_loss += loss
-                
+
+                interval_loss += loss
+                interval_correct += batch_correct
+                interval_count += 1
+
                 self.backward(gradient, learning_rate)
 
-                history['lr'].append(learning_rate)
-                history['loss'].append(loss)
-                history['accuracy'].append(batch_accuracy)
-                
-                # print each first and last batch and every 50 batches
-                if batch_num % 50 == 0 or batch_num == 1 or batch_num == num_batches:
-                    print(f"Batch {batch_num}/{num_batches}, Loss: {loss:.4f}, Accuracy: {batch_accuracy:.4f}, Time: {(time.time() - initial_time):.2f}s")
-                    # restart time
+                if batch_num % 50 == 0 or batch_num == 1 or batch_num == n_batches:
+                    print(f"Batch {batch_num}/{n_batches}, Loss: {loss:.4f}, Accuracy: {batch_accuracy:.4f}, Time: {(time.time() - initial_time):.2f}s")
                     initial_time = time.time()
+                
 
-                # if batch_accuracy > best_accuracy:
-                #     print(f"Batch {batch_num}/{num_batches}, Loss: {loss:.4f}, Accuracy increase {best_accuracy} > {batch_accuracy}")
-                #     best_accuracy = batch_accuracy
+                if batch_num % eval_interval == 0 or batch_num == n_batches:
+                    print("evaluating now")
+                    avg_loss = interval_loss / interval_count
+                    avg_accuracy = interval_correct / (interval_count * batch_size)
 
-                #     if validate: # only start evaluating after threshold
-                #         best_val_accuracy = self.call_evaluate(dataset, history, batch_size, best_val_accuracy, regularization, verbose)
-            
+                    interval_step = (batch_num // eval_interval)
+                    learning_rate = self.lr_scheduler(initial_learning_rate, interval_step, drop=0.5, epochs_drop=5)
 
-            # evaluate after epoch 
-            if validate:
-                self.training = False
-                best_val_accuracy = self.call_evaluate(dataset, epoch_history, batch_size, best_val_accuracy, regularization, verbose)
+                    history['lr'].append(learning_rate)
+                    history['loss'].append(avg_loss)
+                    history['accuracy'].append(avg_accuracy)
 
-            # average loss for this batch
-            epoch_loss /= num_batches
+                    interval_loss = 0
+                    interval_correct = 0
+                    interval_count = 0
+
+                    self.training = False
+                    val_loss, val_accuracy = self.evaluate(
+                        dataset['validation_images'],
+                        dataset['validation_labels'],
+                        batch_size,
+                        regularization,
+                        verbose,
+                        fraction=0.3
+                    )
+                    self.training = True
+
+                    history['val_loss'].append(val_loss)
+                    history['val_accuracy'].append(val_accuracy)
+
+                    if val_accuracy > best_val_accuracy:
+                        print(f'--New best validation accuracy: {best_val_accuracy:.4f} > {val_accuracy:.4f}. Saving model...--')
+                        best_val_accuracy = val_accuracy
+                        self.save_model()
+                        early_stopping = 0
+                    else:
+                        early_stopping += 1
+                        print(f'No improvemenst for {early_stopping} intervals.')
+                        if early_stopping >= self.patience:
+                            print(f'\nEarly stopping! No improvement for {self.patience} intervals.')
+                            break
+
+            # after full epoch - no extra evaluate here
+            epoch_loss /= n_batches
             accuracy = epoch_correct / n_train
-            print(f"Epoch {epoch+1}/{num_epochs}, Avg Loss: {epoch_loss}, Avg Accuracy: {accuracy}, Best Accuracy: {best_accuracy}")
+            print(f"Epoch {epoch+1}/{num_epochs}, Avg Loss: {epoch_loss:.4f}, Avg Accuracy: {accuracy:.4f}")
 
-        # after the for epoch in range(num_epochs): loop ends
-        history_df = pd.DataFrame(history)
-        epoch_df = pd.DataFrame(epoch_history)
-
-        # timestamped filenames
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        history_df = pd.DataFrame(history)
         history_df.to_csv(f'training_history_{timestamp}.csv', index=False)
-        epoch_df.to_csv(f'epoch_history_{timestamp}.csv', index=False)
 
-        print("Training and epoch history saved.")
+        print("Training and history saved.")
 
-    def call_evaluate(self, dataset, history, batch_size, best_val_accuracy, regularization, verbose):
-        # evaluate after epoch 
-        X_val = dataset['validation_images']
-        y_val = dataset['validation_labels']
-       
-        indices = np.random.permutation(len(X_val))
+    def evaluate(self, X, y, batch_size, regularization, verbose=True, fraction=0.3):
+        n_data = len(X)
+        subset_size = int(fraction * n_data)
 
-        X_val = X_val[indices]
-        y_val = y_val[indices]
-        val_loss, val_accuracy = self.evaluate(
-            X_val,
-            y_val,
-            batch_size,
-            regularization,
-            verbose
-        )
-        history['val_loss'].append(val_loss)
-        history['val_accuracy'].append(val_accuracy)
+        if subset_size < batch_size:
+            subset_size = batch_size
 
-        if val_accuracy > best_val_accuracy:
-            print(f'--New best validation accuracy: {best_val_accuracy:.4f} > {val_accuracy}. Saving model...--')
-            best_val_accuracy = val_accuracy
-            self.save_model()
-        
-        return best_val_accuracy
+        indices = np.random.choice(n_data, subset_size, replace=False)
+        X = X[indices]
+        y = y[indices]
 
-    def evaluate(self, X, y, batch_size, regularization, verbose=True):
-        n_data = len(X) # length of val images   
+        n_data = len(X)
         num_batches = (n_data + batch_size - 1) // batch_size 
         total_loss = 0 
         total_correct = 0
@@ -243,7 +253,7 @@ class CNN:
             X_batch = X[i:i + batch_size]
             y_batch = y[i:i + batch_size]
 
-            y_pred  = self.forward(X_batch, training=False)
+            y_pred = self.forward(X_batch, training=False)
 
             loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch))
             total_loss += loss
