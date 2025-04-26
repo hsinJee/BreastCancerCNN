@@ -61,60 +61,54 @@ class CNN:
                         useSoftmax=True)) # use softmax as it is the final layer    
                 
         elif dataset_name == 'breakHis':
-            self.add_layer(Convolutional(name='conv1', 
-                              image_shape=(225, 225, 3),  # Input shape (225, 225, 3) for RGB
-                              num_filters=16,
-                              stride=2,
-                              size=3,  # Kernel size
-                              activation='relu'))
-            # Batch Normalization 1
+            # Conv1: stride 4 reduces 224×224 → 56×56
+            self.add_layer(Convolutional(
+                name='conv1',
+                image_shape=(224, 224, 3),
+                num_filters=16,
+                stride=4,
+                size=3,
+                activation='relu'
+            ))
             self.add_layer(BatchNormalization(name='batch_norm1'))
 
-            # Pooling Layer 1
-            self.add_layer(Pooling(name='pool1', stride=2, size=2))  # Pooling with stride=2, size=2
-
-            # Convolutional Layer 2
-            self.add_layer(Convolutional(name='conv2',
-                                        image_shape=(56, 56, 16),  # Output shape from conv1
-                                        num_filters=32,
-                                        stride=2,
-                                        size=3,
-                                        activation='relu'))
-
-            # Batch Normalization 2
+            # Conv2: stride 4 reduces 56×56 → 14×14
+            self.add_layer(Convolutional(
+                name='conv2',
+                image_shape=(56, 56, 16),
+                num_filters=32,
+                stride=4,
+                size=3,
+                activation='relu'
+            ))
             self.add_layer(BatchNormalization(name='batch_norm2'))
 
-            # Pooling Layer 2
-            self.add_layer(Pooling(name='pool2', stride=2, size=2))
-
-            # Convolutional Layer 3
-            self.add_layer(Convolutional(name='conv3',
-                                        image_shape=(13, 13, 32),  # Output shape from conv2
-                                        num_filters=64,
-                                        stride=2,
-                                        size=3,
-                                        activation='relu'))
-
-            # Batch Normalization 3
+            # Conv3: stride 4 reduces 14×14 → 3×3
+            self.add_layer(Convolutional(
+                name='conv3',
+                image_shape=(14, 14, 32),
+                num_filters=64,
+                stride=4,
+                size=3,
+                activation='relu'
+            ))
             self.add_layer(BatchNormalization(name='batch_norm3'))
 
-            # Pooling Layer 3
-            self.add_layer(Pooling(name='pool3', stride=2, size=2))
+            # Flatten and Dense layers
+            self.add_layer(Flatten(name='flatten1'))  # yields 3*3*64 = 576 features
+            self.add_layer(Dense(
+                name='dense1',
+                input_size=3*3*64,
+                output_size=128,
+                useSoftmax=False
+            ))
+            self.add_layer(Dense(
+                name='output',
+                input_size=128,
+                output_size=2,
+                useSoftmax=True
+            ))
 
-            # Flatten Layer
-            self.add_layer(Flatten(name='flatten1'))  # Flatten the output to pass into dense layers
-
-            # Fully Connected Layer 1 (Dense Layer)
-            self.add_layer(Dense(name='dense1', 
-                                input_size= 3*3*64,  # Adjusted for the output size after pooling
-                                output_size=128,  
-                                useSoftmax=False))
-
-            # Output Layer (Softmax for classification)
-            self.add_layer(Dense(name='output', 
-                                input_size=128, 
-                                output_size=2,  # For binary classification (if there are two classes)
-                                useSoftmax=True))
             
     def lr_scheduler(self, initial_lr, step, drop=0.5, epochs_drop=10):
         new_lr = initial_lr * (drop ** (step // epochs_drop))
@@ -125,14 +119,13 @@ class CNN:
         # training bool false or true
         for layer in self.layers:
             image = layer.forward(image, training)
-            print(f"{layer.name}")
         return image
     
     def backward(self, dout, learning_rate):
         print("--backwards pass--")
         for layer in reversed(self.layers):
             if hasattr(layer, 'backward'):
-                dout = layer.backward(dout, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8)
+                dout = layer.backward(dout, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8)     
         return dout
     
     def cross_entropy(self, predictions, targets, class_weights=None, epsilon=1e-12):
@@ -173,7 +166,7 @@ class CNN:
 
         n_batches = (n_train + batch_size - 1) // batch_size
         eval_interval = max(1, n_batches // 20) # evaluate 20 times per epoch
-
+        print_interval = max(1, n_batches // 50) # print 50 times per epoch
         best_val_accuracy = -np.inf
         interval_loss = 0
         interval_correct = 0
@@ -196,27 +189,29 @@ class CNN:
 
                 X_batch = X_train[i:i + batch_size]
                 y_batch = y_train[i:i + batch_size]
+
+                if y_batch.ndim == 2:
+                    y_true = np.argmax(y_batch, axis=1)
+                else:
+                    y_true = y_batch
                 
                 y_pred = self.forward(X_batch, training=True)
+                
+                loss = self.regularized_cross_entropy(self.layers, y_pred, y_true, regularization, len(X_batch))
+
+                epoch_loss += loss
 
                 batch_preds = np.argmax(y_pred, axis=1)
-
-                if self.dataset_name == 'breakHis':
-                    y_true = np.argmax(y_batch, axis=1)
-                    batch_correct = np.sum(batch_preds == y_true)
-                elif self.dataset_name == 'mnist': 
-                    batch_correct = np.sum(batch_preds == y_batch)
+                
+                batch_correct = np.sum(batch_preds == y_true)
 
                 epoch_correct += batch_correct
                 batch_accuracy = batch_correct / batch_size
 
                 gradient = y_pred.copy()
-                gradient[np.arange(len(X_batch)), y_batch] -= 1
+                # now use the integer labels you computed already
+                gradient[np.arange(len(X_batch)), y_true] -= 1
                 gradient /= len(X_batch)
-
-                loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch))
-
-                epoch_loss += loss
 
                 interval_loss += loss
                 interval_correct += batch_correct
@@ -224,7 +219,7 @@ class CNN:
 
                 self.backward(gradient, learning_rate)
 
-                if batch_num % 50 == 0 or batch_num == 1 or batch_num == n_batches:
+                if batch_num % print_interval == 0 or batch_num == 1 or batch_num == n_batches:
                     print(f"Batch {batch_num}/{n_batches}, Loss: {loss:.4f}, Accuracy: {batch_accuracy:.4f}, Time: {(time.time() - initial_time):.2f}s")
                     initial_time = time.time()
                 
@@ -302,14 +297,17 @@ class CNN:
             X_batch = X[i:i + batch_size]
             y_batch = y[i:i + batch_size]
 
-            y_pred = self.forward(X_batch, training=False)
+            if y_batch.ndim == 2:
+                y_true = np.argmax(y_batch, axis=1)
+            else:
+                y_true = y_batch
 
-            y_pred  = self.forward(X_batch, training=False)
-            loss = self.regularized_cross_entropy(self.layers, y_pred, y_batch, regularization, len(X_batch))
+            y_pred = self.forward(X_batch, training=False)
+            loss = self.regularized_cross_entropy(self.layers, y_pred, y_true, regularization, len(X_batch))
             total_loss += loss
 
             preds = np.argmax(y_pred, axis=1)
-            batch_correct = np.sum(preds == y_batch)
+            batch_correct = np.sum(preds == y_true)
             total_correct += batch_correct
             batch_accuracy = batch_correct / len(X_batch)
             print(f"Evaluation Batch {i // batch_size + 1}/{num_batches}, Loss: {loss:.4f}, Accuracy: {batch_accuracy:.4f}")

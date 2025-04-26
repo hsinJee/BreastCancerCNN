@@ -28,7 +28,7 @@ dataset = preprocess(dataset)
 print('\n--- Building the model ---')                                   # build model
 model = CNN(patience=patience)
 model.build_model(dataset_name, batch_size)
-model.load_model("best_modelMNIST.pkl")
+model.load_model("best_modelMNIST1.pkl")
 
 test_images = dataset['test_images']
 

@@ -30,7 +30,7 @@ class Pooling: # max pool
 
         return downsampled
     
-    def backward(self, din, learning_rate):
+    def backward(self, din, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8):
         batch_size, in_h, in_w, channels = self.last_input.shape
 
         dout = np.zeros(self.last_input.shape)

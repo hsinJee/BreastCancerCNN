@@ -26,9 +26,9 @@ if __name__ == '__main__':
 
     print('\n--- Loading ' + dataset_name + ' dataset ---')  
     dataset = load_breakHis_CNN(train_dir=train_dir, val_dir=val_dir, test_dir=test_dir)
-    # dataset = load_mnist_new()
+    #dataset = load_mnist_new()
     print('\n--- Processing the dataset ---')  
-    # dataset = preprocess(dataset)
+    #dataset = preprocess(dataset)
 
     print(f'Length of train dataset: {len(dataset["train_images"])}')
 

@@ -25,9 +25,9 @@ val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\v
 test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
 
 print('\n--- Building the model ---')  # Build the model
-model = CNN()
+model = CNN(patience=patience)
 model.build_model(dataset_name, batch_size)
-model.load_model("best_model.pkl")
+model.load_model("best_modelBreakhis.pkl")
 
 # Load the image from the path
 img_path = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test\benign\SOB_B_F-14-25197-200-040.png"
