@@ -99,6 +99,9 @@ class Convolutional:
     def get_weights(self):
         return np.reshape(self.filters, -1)
     
+    def set_weights(self, x):
+        self.filters = x.reshape(self.filters.shape)
+    
     @property
     def params(self):
         return {'filters': self.filters}

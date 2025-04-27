@@ -58,6 +58,9 @@ class Dense:
     def get_weights(self):
         return np.reshape(self.weights, -1)
     
+    def set_weights(self, x):
+        self.weights = x.reshape(self.weights.shape)
+    
     # add property to save into best model file
     @property
     def params(self):

@@ -219,6 +219,17 @@ class CNN:
 
                 self.backward(gradient, learning_rate)
 
+                # weight decay update
+                if regularization > 0:
+                    decay = regularization / len(X_batch)
+                    for layer in self.layers:
+                        if hasattr(layer, 'get_weights') and hasattr(layer, 'set_weights'):
+                            W = layer.get_weights()
+                            if W.ndim > 1: # prevent from getting batchnorm gammas/betas
+                                if isinstance(W, np.ndarray) and W.size:
+                                    W = W- learning_rate * decay * W
+                                    layer.set_weights(W)
+
                 if batch_num % print_interval == 0 or batch_num == 1 or batch_num == n_batches:
                     print(f"Batch {batch_num}/{n_batches}, Loss: {loss:.4f}, Accuracy: {batch_accuracy:.4f}, Time: {(time.time() - initial_time):.2f}s")
                     initial_time = time.time()
@@ -245,9 +256,9 @@ class CNN:
                         dataset['validation_images'],
                         dataset['validation_labels'],
                         batch_size,
-                        regularization,
+                        0, # set regularization to 0 
                         verbose,
-                        fraction=0.3
+                        fraction=1.0
                     )
                     self.training = True
 
@@ -277,7 +288,7 @@ class CNN:
 
         print("Training and history saved.")
 
-    def evaluate(self, X, y, batch_size, regularization, verbose=True, fraction=0.3):
+    def evaluate(self, X, y, batch_size, regularization, verbose=True, fraction=1.0):
         n_data = len(X)
         subset_size = int(fraction * n_data)
 
