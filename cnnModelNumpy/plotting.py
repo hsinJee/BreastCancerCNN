@@ -2,43 +2,59 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Load your history
+
 history = pd.read_csv('training_history_20250426_004337.csv')
 
-# Choose columns
+
 train_acc = history['accuracy']
 val_acc = history['val_accuracy']
 
-# Insert (0, 0) at the beginning
+
 train_acc = np.insert(train_acc.values, 0, 0.0)
 val_acc = np.insert(val_acc.values, 0, 0.0)
 
-# Create x axis
-x_real = np.arange(len(train_acc))  # Now one longer
-x_dense = np.linspace(0, len(train_acc) - 1, len(train_acc) * 5)  # 5x more points
+total_batches = 1719
 
-# Interpolate
-train_acc_interp = np.interp(x_dense, x_real, train_acc)
-val_acc_interp = np.interp(x_dense, x_real, val_acc)
+intervals = len(train_acc) - 1
+batches_per_interval = total_batches / intervals
 
-# Plot
-plt.figure(figsize=(10,5))
-plt.plot(x_dense, train_acc_interp, label='Training Accuracy (smooth)', linestyle='-')
-plt.plot(x_dense, val_acc_interp, label='Validation Accuracy (smooth)', linestyle='-')
-plt.xlabel('Interval')
-plt.ylabel('Accuracy')
-plt.title('Training and Validation Accuracy (Smoothed, Starting from 0)')
-plt.legend()
-plt.grid(True)
+x_real_batches = np.arange(len(train_acc)) * batches_per_interval
+
+
+x_dense_batches = np.linspace(0, total_batches, len(train_acc) * 5)
+
+
+train_acc_interp = np.interp(x_dense_batches, x_real_batches, train_acc)
+val_acc_interp   = np.interp(x_dense_batches, x_real_batches, val_acc)
+
+fig, ax = plt.subplots(figsize=(10,5))
+ax.plot(x_dense_batches, train_acc_interp, label='Training Accuracy')
+ax.plot(x_dense_batches, val_acc_interp,   label='Validation Accuracy')
+
+
+ax.set_xlim(0, total_batches)
+ax.set_ylim(0, 1.0)
+
+
+ax.margins(x=0, y=0)
+
+
+ax.set_xticks(np.arange(0, total_batches+1, 200))
+ax.set_xlabel('Batch Number')
+ax.set_ylabel('Accuracy')
+ax.set_title('Training and Validation Accuracy (ADAM)')
+ax.legend()
+ax.grid(True)
+
 plt.show()
 
 
 history = pd.read_csv('training_history_20250425_172917.csv')
 
-group_size = 100  # Average every 100 batches
+group_size = 100 
 grouped = history.groupby(history.index // group_size).mean()
 
-# Plot smoothed Training Loss
+
 plt.figure(figsize=(10,5))
 plt.plot(grouped.index * group_size, grouped['loss'], label='Training Loss (avg every 100 batches)', linestyle='-')
 plt.xlabel('Batch')
@@ -48,7 +64,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# Plot smoothed Training Accuracy
+
 plt.figure(figsize=(10,5))
 plt.plot(grouped.index * group_size, grouped['accuracy'], label='Training Accuracy (avg every 100 batches)', linestyle='-')
 plt.xlabel('Batch')
@@ -58,7 +74,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# Plot Learning Rate
+
 plt.figure(figsize=(10,5))
 plt.plot(grouped.index * group_size, grouped['lr'], label='Learning Rate (avg every 100 batches)', linestyle='-')
 plt.xlabel('Batch')

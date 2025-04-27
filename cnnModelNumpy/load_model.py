@@ -39,7 +39,7 @@ plt.imshow(test_images[0].reshape(28, 28), cmap='gray')
 plt.title(f"Label: {test_labels[0]}")
 
 # predict the number 9
-target_digit = 7
+target_digit = 3
 indices = np.where(dataset['test_labels'] == target_digit)[0]
 if len(indices) == 0:
     print(f"No images of digit {target_digit} found.")
@@ -51,15 +51,19 @@ else:
     if image.ndim == 1:
         image = image.reshape(28, 28)
 
-    # Display the image
-    plt.imshow(image, cmap='gray')
-    plt.title(f"Digit: {target_digit}")
-    plt.axis('off')
-    plt.show()
+    
 
     probs = model.predict(image)
-
+    predicted_digit = np.argmax(probs, axis=1)[0]
+    predicted_probs = probs[0, predicted_digit]
     print("\nClass probabilities:")
     for i, p in enumerate(probs[0]):
         print(f"Digit {i}: {p:.4f}")
+
+
+    # Display the image
+    plt.imshow(image, cmap='gray')
+    plt.title(f"True digit: {target_digit}, Predicted digit: {predicted_digit}, Probability: {predicted_probs:.2f}")
+    plt.axis('off')
+    plt.show()
 
