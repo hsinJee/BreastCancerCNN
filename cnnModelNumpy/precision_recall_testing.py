@@ -12,7 +12,7 @@ sys.path.insert(0, parent_dir)
 
 from loading import load_mnist_new, preprocess, load_breakHis_CNN
 
-dataset_name = 'breakHis'
+dataset_name = 'breakHis2'
 epochs = 1
 learning_rate = 0.01
 validate = 1
@@ -29,7 +29,7 @@ test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\
 print('\n--- Building the model ---')  # Build the model
 model = CNN(patience=patience)
 model.build_model(dataset_name, batch_size)
-model.load_model("best_model71b93m.pkl")
+model.load_model("best_model.pkl")
 
 class_names = ['benign','malignant']
 

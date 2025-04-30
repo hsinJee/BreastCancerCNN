@@ -9,7 +9,7 @@ from loading import load_mnist_new, preprocess, load_breakHis_CNN
 # exploding gradient for now
 if __name__ == '__main__':
     # 'breakHis' 'mnist'
-    dataset_name = 'breakHis'
+    dataset_name = 'breakHis2'
     epochs = 5
     learning_rate = 0.01
     validate = 1
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     verbose = 1
     plot_weights = 1
     batch_size = 32
-    patience = 5
+    patience = 18
     regularization = 0.1
     train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\train"
     val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"

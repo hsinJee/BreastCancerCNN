@@ -105,6 +105,53 @@ class CNN:
                 output_size=2,
                 useSoftmax=True
             ))
+        elif dataset_name == "breakHis2":
+            self.add_layer(Convolutional(
+                name='conv1',
+                image_shape=(224, 224, 3),
+                num_filters=16,
+                stride=4,
+                size=3,
+                activation='relu'
+            ))
+       
+            self.add_layer(BatchNormalization(name='batch_norm1'))
+
+            self.add_layer(Convolutional(
+                name='conv2',
+                image_shape=(56, 56, 16),
+                num_filters=32,
+                stride=2,
+                size=3,
+                activation='relu'
+            ))
+            self.add_layer(Pooling(name='pool2', stride=2, size=2))
+            self.add_layer(BatchNormalization(name='batch_norm2'))
+
+            self.add_layer(Convolutional(
+                name='conv3',
+                image_shape=(14, 14, 32),
+                num_filters=64,
+                stride=2,
+                size=3,
+                activation='relu'
+            ))
+            self.add_layer(BatchNormalization(name='batch_norm3'))
+
+            # Flatten and Dense layers
+            self.add_layer(Flatten(name='flatten1'))  
+            self.add_layer(Dense(
+                name='dense1',
+                input_size=2304,
+                output_size=128,
+                useSoftmax=False
+            ))
+            self.add_layer(Dense(
+                name='output',
+                input_size=128,
+                output_size=2,
+                useSoftmax=True
+            ))
 
             
     def lr_scheduler(self, initial_lr, step, drop=0.5, epochs_drop=10):
