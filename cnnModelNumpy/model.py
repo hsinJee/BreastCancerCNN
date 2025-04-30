@@ -61,7 +61,6 @@ class CNN:
                         useSoftmax=True)) # use softmax as it is the final layer    
                 
         elif dataset_name == 'breakHis':
-            # Conv1: stride 4 reduces 224×224 → 56×56
             self.add_layer(Convolutional(
                 name='conv1',
                 image_shape=(224, 224, 3),
@@ -72,7 +71,6 @@ class CNN:
             ))
             self.add_layer(BatchNormalization(name='batch_norm1'))
 
-            # Conv2: stride 4 reduces 56×56 → 14×14
             self.add_layer(Convolutional(
                 name='conv2',
                 image_shape=(56, 56, 16),
@@ -83,7 +81,6 @@ class CNN:
             ))
             self.add_layer(BatchNormalization(name='batch_norm2'))
 
-            # Conv3: stride 4 reduces 14×14 → 3×3
             self.add_layer(Convolutional(
                 name='conv3',
                 image_shape=(14, 14, 32),

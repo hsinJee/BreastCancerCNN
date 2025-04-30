@@ -9,7 +9,7 @@ class Dense:
         self.last_input = None
         self.useSoftmax = useSoftmax
 
-        # Adam specific variables
+        # Adam variables initialization
         self.m_w = np.zeros_like(self.weights)
         self.v_w = np.zeros_like(self.weights)
         self.m_b = np.zeros_like(self.biases)

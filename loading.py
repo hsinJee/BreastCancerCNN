@@ -1,8 +1,8 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications.resnet50 import preprocess_input
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications.resnet50 import preprocess_input as preprocess_input_resnet
+from tensorflow.keras.applications.vgg16 import preprocess_input as preprocess_input_vgg
 def load_mnist():
     (X_train, train_labels), (X_test, test_labels) = tf.keras.datasets.mnist.load_data()
 
@@ -28,7 +28,7 @@ def load_mnist():
 def load_breakHis_vgg(train_dir, val_dir, image_size=(224, 224), batch_size=64):
     # augment the image for training
     train_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input,
+        preprocessing_function=preprocess_input_vgg,
         rotation_range=40,
         width_shift_range=0.2,
         height_shift_range=0.2,
@@ -41,7 +41,7 @@ def load_breakHis_vgg(train_dir, val_dir, image_size=(224, 224), batch_size=64):
 
     # augment the image for validation
     val_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input  
+        preprocessing_function=preprocess_input_vgg  
     )
 
     training_set = train_datagen.flow_from_directory(
@@ -62,7 +62,7 @@ def load_breakHis_vgg(train_dir, val_dir, image_size=(224, 224), batch_size=64):
 
 def load_breakHis_resNet(train_dir, val_dir, image_size=(224, 224), batch_size=64):
     train_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input,
+        preprocessing_function=preprocess_input_resnet,
         rotation_range=40,
         width_shift_range=0.2,
         height_shift_range=0.2,
@@ -73,7 +73,7 @@ def load_breakHis_resNet(train_dir, val_dir, image_size=(224, 224), batch_size=6
     )
 
     val_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input
+        preprocessing_function=preprocess_input_resnet
     )
 
     training_set = train_datagen.flow_from_directory(
@@ -95,7 +95,7 @@ def load_breakHis_resNet(train_dir, val_dir, image_size=(224, 224), batch_size=6
 def load_breakHis_CNN(train_dir, val_dir, test_dir, image_size=(224, 224), batch_size=64):
     # Image data generator for training with augmentation
     train_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input,  # ResNet-specific preprocessing
+        preprocessing_function=preprocess_input_vgg,  # ResNet-specific preprocessing
         rotation_range=40,
         width_shift_range=0.2,
         height_shift_range=0.2,
@@ -107,12 +107,12 @@ def load_breakHis_CNN(train_dir, val_dir, test_dir, image_size=(224, 224), batch
 
     # Image data generator for validation (no augmentation)
     val_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input  # Only preprocessing
+        preprocessing_function=preprocess_input_vgg 
     )
     
     # Image data generator for test set (no augmentation)
     test_datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input  # Only preprocessing
+        preprocessing_function=preprocess_input_vgg  
     )
 
     # Load the training dataset
@@ -120,7 +120,7 @@ def load_breakHis_CNN(train_dir, val_dir, test_dir, image_size=(224, 224), batch
         train_dir,
         target_size=image_size,
         batch_size=batch_size,
-        class_mode='categorical'  # Multi-class classification
+        class_mode='categorical'  
     )
 
     # Load the validation dataset
@@ -128,7 +128,7 @@ def load_breakHis_CNN(train_dir, val_dir, test_dir, image_size=(224, 224), batch
         val_dir,
         target_size=image_size,
         batch_size=batch_size,
-        shuffle=False,  # Do not shuffle validation set
+        shuffle=False,  
         class_mode='categorical'
     )
 
@@ -137,7 +137,7 @@ def load_breakHis_CNN(train_dir, val_dir, test_dir, image_size=(224, 224), batch
         test_dir,
         target_size=image_size,
         batch_size=batch_size,
-        shuffle=False,  # Do not shuffle test set
+        shuffle=False,  
         class_mode='categorical'
     )
 

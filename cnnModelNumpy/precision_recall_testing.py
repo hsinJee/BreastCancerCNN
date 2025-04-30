@@ -29,7 +29,7 @@ test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\
 print('\n--- Building the model ---')  # Build the model
 model = CNN(patience=patience)
 model.build_model(dataset_name, batch_size)
-model.load_model("best_model.pkl")
+model.load_model("best_model71b93m.pkl")
 
 class_names = ['benign','malignant']
 
