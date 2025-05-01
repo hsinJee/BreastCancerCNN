@@ -58,7 +58,7 @@ print(model.summary())
 model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), metrics=['accuracy'])
 
 # loading the files and data augmentation
-training_set, val_set = load_breakHis(train_dir, val_dir)
+training_set, val_set = load_breakHis_vgg(train_dir, val_dir)
 
 # compute class weights
 class_labels = training_set.classes
