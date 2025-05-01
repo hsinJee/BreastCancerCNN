@@ -13,7 +13,6 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loading import load_breakHis_resNet
-from plotting import plot_accuracy_curve, plot_learning_curve
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.set_logical_device_configuration(

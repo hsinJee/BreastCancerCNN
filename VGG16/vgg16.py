@@ -14,7 +14,7 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loading import load_breakHis_vgg
-from plotting import plot_accuracy_curve, plot_learning_curve
+
 
 # using gpu for training
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -33,7 +33,7 @@ test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\
 base_model = VGG16(input_shape=IMAGE_SIZE + [3], weights='imagenet', include_top=False)
 
 # freeze all VGG layers
-for layer in base_model.layers[:-4]: # freezing the convolutional layers
+for layer in base_model.layers[:-20]: # freezing the convolutional layers
     layer.trainable = False
 
 print(base_model.summary())
@@ -58,7 +58,7 @@ print(model.summary())
 model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), metrics=['accuracy'])
 
 # loading the files and data augmentation
-training_set, val_set = load_breakHis(train_dir, val_dir)
+training_set, val_set = load_breakHis_vgg(train_dir, val_dir)
 
 # compute class weights
 class_labels = training_set.classes
@@ -93,10 +93,6 @@ csv_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\history_data_vgg.csv"
 history_df.to_csv(csv_file, index=False)
 
 print(f"History data saved to {csv_file}")
-
-# Plot accuracy curve and loss curves
-plot_accuracy_curve(history.history['accuracy'], history.history['val_accuracy'])
-plot_learning_curve(history.history['loss'])
 
 y_true = val_set.classes  # True class indices (e.g., 0 or 1)
 y_pred_probs = model.predict(val_set)
