@@ -10,11 +10,11 @@ import os
 # Paths
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
-test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
-#best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-VGG16.keras"
+test_dir = r"test dir"
+
 
 # Load model
-best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet50.keras"
+best_model_file = r"C:\BreakHis-ResNet50.keras"
 model = tf.keras.models.load_model(best_model_file)
 
 # Prepare test data
