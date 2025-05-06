@@ -14,7 +14,7 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loading import load_breakHis_vgg
-from plotting import plot_accuracy_curve, plot_learning_curve
+
 
 # using gpu for training
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -25,9 +25,9 @@ tf.config.set_logical_device_configuration(
 
 IMAGE_SIZE = [224, 224]
 
-train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\train"
-val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"
-test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
+train_dir = r"traindir" # get directories from breakhis dataset
+val_dir = r"valdir"
+test_dir = r"testdir"
 
 # load base VGG16
 base_model = VGG16(input_shape=IMAGE_SIZE + [3], weights='imagenet', include_top=False)

@@ -22,9 +22,9 @@ tf.config.set_logical_device_configuration(
 
 IMAGE_SIZE=[224, 224]
 
-train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\train"
-val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"
-test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
+train_dir = r"traindir" # get directories from breakhis dataset
+val_dir = r"valdir"
+test_dir = r"testdir"
 
 base_model = ResNet50(input_shape=IMAGE_SIZE + [3], weights="imagenet", include_top=False)
 print(base_model.summary())

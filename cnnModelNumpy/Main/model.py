@@ -1,13 +1,14 @@
-from conv import Convolutional
-from dense import Dense
-from flatten import Flatten
-from batch_norm import BatchNormalization
-from pooling import Pooling
+from Layers.conv import Convolutional
+from Layers.dense import Dense
+from Layers.flatten import Flatten
+from Layers.batch_norm import BatchNormalization
+from Layers.pooling import Pooling
 import numpy as np
 import time
 import pickle
 import pandas as pd
 import datetime
+import os
 
 class CNN:
     def __init__(self, patience): 
@@ -328,7 +329,8 @@ class CNN:
 
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         history_df = pd.DataFrame(history)
-        history_df.to_csv(f'training_history_{timestamp}.csv', index=False)
+        os.makedirs('csv', exist_ok=True)
+        history_df.to_csv(f'csv/training_history_{timestamp}.csv', index=False)
 
         print("Training and history saved.")
 
@@ -405,3 +407,17 @@ class CNN:
         prediction = np.argmax(probs, axis=1)[0]
         print(f"Predicted digit: {prediction}")
         return probs
+
+    def get_feature_maps(self, image):
+        if not isinstance(image, np.ndarray):
+            raise TypeError("Input must be a NumPy array.")
+        if image.ndim != 4:
+            raise ValueError(f"Expected image with 4 dimensions (batch, h, w, c), got shape: {image.shape}")
+
+        feature_maps = []
+        x = image
+        for layer in self.layers:
+            x = layer.forward(x, training=False)
+            if hasattr(layer, 'name') and 'conv' in layer.name.lower():
+                feature_maps.append((layer.name, x.copy()))
+        return feature_maps

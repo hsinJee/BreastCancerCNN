@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 
 IMAGE_SIZE = 224
 
-train_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\train"
-val_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\val"
-test_dir = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_200X\test"
+train_dir = r"traindir" # get directories from breakhis dataset
+val_dir = r"valdir"
+test_dir = r"testdir"
 
 CLASSES = os.listdir(train_dir)
 num_classes = len(CLASSES)
-#best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet50.keras"
+best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-ResNet50.keras"
 best_model_file = r"C:\Users\sumhs\Documents\Projects\FYP\temp\BreakHis-VGG16.keras"
 model = tf.keras.models.load_model(best_model_file)
 
@@ -65,21 +65,24 @@ testImagePath = r"C:\Users\sumhs\Documents\Projects\BreastCancer\dataset_split2_
 img = cv2.imread(testImagePath)
 
 imgForModel = prepareImage(testImagePath)
+import time 
 
+start = time.time()
 resultArray = model.predict(imgForModel, verbose=1)
+end = time.time()
 print(resultArray)
 
 answer = np.argmax(resultArray, axis=1)  # retrieve the higher probability item
 print(answer)
 
-heatmap = get_gradcam_heatmap(model, imgForModel, answer[0], layer_name="conv5_block3_out")
+#heatmap = get_gradcam_heatmap(model, imgForModel, answer[0], layer_name="conv5_block3_out")
 
-overlayed_image = apply_gradcam(testImagePath, heatmap)
+#overlayed_image = apply_gradcam(testImagePath, heatmap)
 
 index = answer[0]
 className = CLASSES[index]
 
-print(f"The predicted class is: {className}")
+print(f"The predicted class is: {className}, time: {end - start}")
 
 cv2.putText(img, className, (3, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
