@@ -23,14 +23,14 @@ The main focus was on:
 
 ## Architectures
 
-### 🧠 Custom CNN (NumPy)
+### Custom CNN (NumPy)
 - Implemented from scratch
 - Batched input support
 - Batch normalization
 - Adam optimizer
 - 3 Conv layers + Dense
 
-### 🏗️ Pretrained Models
+### Pretrained Models
 - VGG16 (14.7M parameters)
 - ResNet50 (23.6M parameters)
 - Transfer learning on last 20 layers
